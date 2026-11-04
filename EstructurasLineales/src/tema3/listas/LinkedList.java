@@ -1,11 +1,11 @@
 package tema3.listas;
 
 public class LinkedList {
-	private Node head;	//Es el nodo de cabecera
-	private Node lastNode; //Es el último nodo
-	private int size;	//Cantidad de nodos en la lista
+	private Node head;	// Reference to the first node (head of the list)
+	private Node lastNode; // Reference to the last node (tail/lastNode) for O(1) appending
+	private int size;	// Number of elements currently stored in the list
 	
-	//En esta clase no se gestionan direcciones porque eso es cosa del nodo, aquí se gestonan objetos nodos "completo" y el tamaño de la propia lista
+	// Memory references are encapsulated within the Node class; this class manages full Node objects and the overall list size.
 	
 	//Constructor
 	public LinkedList() {
@@ -14,104 +14,133 @@ public class LinkedList {
 		this.size=0;
 	}
 	
-	// Añadir nodo al final de la lista
-	public void addNode(Object node) {
-		Node newNode = new Node(node);	//Creamos el objeto newNode de tipo Node para recoger el parámetro
-		// Hay que diferenciar 2 casos, si la lista está vacia. Esto es cuando head (objeto de tipo Node) está vacio
+	/**
+	 * Appends a new node containing 'data' at the end of the list
+	 * @param data payload to be stored inside the new node
+	 * @author bitacorabyte
+	 */
+	public void addNode(Object data) {
+		Node newNode = new Node(data);
+		// Case 1: Empty list (head is null)
 		if (head == null) {
 			head=newNode;
 			lastNode=newNode;
-		}else { //y el caso contrario, que la lista no está vacia, ya contiene algún elemento, ya hay un Node en head y se busca el último Node para anexarlo al final
+		}else { 
+			// Case 2: Non-empty list, link after lastNode and update reference
 			lastNode.setNextNode(newNode);
 			lastNode = newNode;
 		}
-		// Actualizamos el tamaño de la lista
+		// update list size
 		size++;
 	}
 	
-	// Añadir un nodo en una posición concreta
+	/**
+	 * Inserts a new node at a specific zero-based index
+	 * @param position zero-based index where the element will be inserted
+     * @param data payload to be stored inside the new node
+     * @throws IndexOutOfBoundsException if position is negative or greater than size
+	 * @author bitacorabyte
+	 */
 	public void addNode(int position, Object node) {
-		//Lo primero validar datos de entrada, que la posición sea lógica
+		// Validate insertion boundaries: index must be between 0 and size
 		if (position < 0 || position > size) {
-			// No podemos agragar un nuevo nodo ni en posición negatva ni fuera del tamaño del objeto
 			throw new IndexOutOfBoundsException("Posición fuera de rango: " + position);
-		// Con la posición validada
 		}else if (position==size) {
-			// Caso particular, se inserta como último nodo
-			addNode(node); //Usamos el método que ya existe en la clase para añadir al final
-			size++;
+			// Specific case: append at the end (delegate to addNode, which handles size++)
+			addNode(node);
 		}else {
-			// Se inserta en cualquier otra posisción de la lista
 			Node newNode = new Node(node);
 			if (position==0) {
-				//Se inserta al inicio
-				newNode.setNextNode(head); //en el nodo recien insertado, indicamos que su nextNode es el que todavía está en cabecera
-				head=newNode; //Actualizamos la cebecera de la lista para que sea el nuevo nodo insertado
+				// Specific case: insert at the beginning (new head)
+				newNode.setNextNode(head);
+				head=newNode;
 			}else {
-				Node nodoActual = head;	//Inicializamos un objeto de tipo nodo, al nodo de cabecera, que usaremos para reccorrer la lista
-				// Cada iteracción nos asignará el nodo siguiente al actual, por tanto en la primera iteración i=0 y nodo actual será la posición 1 (no la 0)
-				// en la segunda iteración i=1 y nodoActual será la posicion 2 (no la 1)
-				// en la tercera iteración i=2 por tanto no se ejecuta el if y nodoActual es la posición 2. Nosotros queremos usar esa posición para el nuevo
-				// por tanto debemos retroceder un nodo para coger el valor de su nodoSiguiente
-				// por eso en la condición del IF se usa "position-1"
-				// así en la primera iteración i=0 y nodoActual será el de posición 0
+				// Traverse the chain up to node at (position - 1)
+				Node currentNode = head;
 				for (int i=0; i<position-1; i++) {
-					nodoActual=nodoActual.getNextNode();	//actualizamos el nodoActual
+					currentNode=currentNode.getNextNode();	
 				}
-				Node aux = nodoActual.getNextNode();	//En un nuevo objeto auxiliar de tipo nodo guardamos la referencia al "nodo siguente" que tiene nuestro nodo actual, el que hemos encontrado en las iteraciones 
-				nodoActual.setNextNode(newNode);	//En este nodo, le decimos que su siguiente nodo es el nuevo
-				newNode.setNextNode(aux);	//Al nuevo le decmos que su siguiente nodo es el que hemos guardo en el auxiliar, que es "siguiente nodo" antigua del nodo encontrado
+				// Splice the new node between currentNode and its successor
+				Node aux = currentNode.getNextNode(); 
+				currentNode.setNextNode(newNode);
+				newNode.setNextNode(aux);
 			}
-			size++;	//aumentamo el tamaño de la  lista
+			size++;	// Increment size only for head or intermediate insertions
 		}
-		
 	}
 	
-	// Delete a Node in position "position"
+	/**
+	 * Delete a Node in position "position"
+	 * @param position zero-based index of the element to delete
+     * @throws IndexOutOfBoundsException if position is negative or greater than or equal to size
+	 * @author bitacorabyte
+	 */
 	public void deleteNode(int position) {
+		// Validate removal boundaries: index must be strictly within [0, size - 1]
 		if (position < 0 || position >= size) {
             throw new IndexOutOfBoundsException("Posición inválida: " + position);
         }
 
+		// Case 1: Deleting the head element
         if (position == 0) {
             head = head.getNextNode();
             if (size == 1) {
                 lastNode = null;
             }
         } else {
-            Node actual = head;
+        	// Case 2: Deleting an intermediate or tail element
+            Node currentNode = head;
             for (int i = 0; i < position - 1; i++) {
-                actual = actual.getNextNode();
+                currentNode = currentNode.getNextNode();
             }
-            Node nodoABorrar = actual.getNextNode();
-            actual.setNextNode(nodoABorrar.getNextNode());
+            Node nodoABorrar = currentNode.getNextNode();
+            currentNode.setNextNode(nodoABorrar.getNextNode());
 
-            // Si borramos el último nodo, actualizamos ultimoNodo
+            // If the deleted node was the last one, update lastNode pointer
             if (position == size - 1) {
-                lastNode = actual;
+                lastNode = currentNode;
             }
         }
         size--;
 	}
 	
-	//Start in "head" and read node by node until position
-	public Object getData(int position) {
-		return position;
-		//Devuelve el dato del Node
-	}
-	
-	//
+	/**
+	 * Traverses from 'head' and retrieves the payload at the requested index
+	 * @param position zero-based index of the element to retrieve
+	 * @return the payload stored in the target node
+	 * @throws IndexOutOfBoundsException if position is negative or greater than or equal to size
+	 * @author bitcorabyte
+	 */
+	public Object getNode(int position) {
+		if (position < 0 || position >= size) {
+            throw new IndexOutOfBoundsException("Posición inválida: " + position);
+        }
+        Node currentNode = head;
+        for (int i = 0; i < position; i++) {
+            currentNode = currentNode.getNextNode();
+        }
+        return currentNode.getData();
+    }
+
+	/**
+	 * Returns current number of nodes in O(1)
+	 * @return number of elements in O(1) time complexity
+	 * @author bitacorabyte
+	 */
 	public int getSize() {
 		return this.size;
 	}
 	
-	// Método auxiliar para imprimir el estado de la lista por consola
+	/**
+	 * Helper method to display list state in console
+	 * @author bitacorabyte
+	 */
     public void showList() {
-        Node actual = head;
+        Node currentNode = head;
         StringBuilder sb = new StringBuilder();
-        while (actual != null) {
-            sb.append("[").append(actual.getData()).append("] -> ");
-            actual = actual.getNextNode();
+        while (currentNode != null) {
+            sb.append("[").append(currentNode.getData()).append("] -> ");
+            currentNode = currentNode.getNextNode();
         }
         sb.append("null");
         System.out.println(sb.toString());

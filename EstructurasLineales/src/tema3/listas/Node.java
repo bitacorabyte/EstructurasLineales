@@ -1,10 +1,10 @@
 package tema3.listas;
 
 public class Node {
-	private Object data;	// Contiene la información a guardar y tratar
-	private Node nextNode;	// Objeto de tipo Nodo que sigue en la lista
+	private Object data;	// Holds the actual data/payload stored in this node
+	private Node nextNode;	// Reference to the next node in the linked chain
 	
-	//Aqui no se gestionan conceptos como Head (cabecera)  lastNode (úlitmo nodo) esos son conceptos con sentido cuando se gestiona una lista.
+	// Concepts like 'head' or 'lastNode' belong to the list manager, not here.
 	
 	//Constructor
 	public Node(Object d) {
